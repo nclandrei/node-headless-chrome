@@ -1,37 +1,16 @@
-FROM debian:stable-slim
+FROM node:8.8.1
 
-# Install chrome dependencies
-RUN apt-get update -y && \
-    apt-get install ca-certificates \
-      gconf-service \
-      libasound2 \
-      libatk1.0-0 \
-      libatk1.0-0 \
-      libdbus-1-3 \
-      libgconf-2-4 \
-      libgtk-3-0 \
-      libnspr4 \
-      libnss3 \
-      libx11-xcb1 \
-      libxss1 \
-      libxtst6 \
-      fonts-liberation \
-      libappindicator1 \
-      xdg-utils \
-      lsb-release \
-      wget \
-      curl \
-      xz-utils -y --no-install-recommends && \
-    wget https://dl.google.com/linux/direct/google-chrome-unstable_current_amd64.deb && \
-    dpkg -i google-chrome*.deb && \
-    apt-get install -f && \
-    apt-get clean autoclean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* google-chrome-unstable_current_amd64.deb
+RUN apt-get update; apt-get clean
 
-# Install nodejs
-ENV NPM_CONFIG_LOGLEVEL=info NODE_VERSION=8.8.1
+RUN useradd apps
+RUN mkdir -p /home/apps && chown apps:apps /home/apps
 
-RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
-  && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
-  && rm "node-v$NODE_VERSION-linux-x64.tar.xz" \
-  && ln -s /usr/local/bin/node /usr/local/bin/nodejs
+# Install wget.
+RUN apt-get install -y wget
+# Set the Chrome repo.
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+# Install Chrome.
+RUN apt-get update && apt-get -y install google-chrome-stable
+
+CMD [ "node" ]
